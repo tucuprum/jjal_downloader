@@ -220,15 +220,15 @@ def ManualAdd(): #수동 추가
             # loop: extracting image links from each url page of the url list
             i = 0
             for u in loadedList:
-                try:
-                    url = RefineURL(u)
-                    title, fileList = AnalyzePage(u)
-                    i += 1
-                    page = tree.insert('','end',values=[url,title,len(fileList),0])
-                    for f in fileList:
-                        tree.insert(page,'end',values=[f,'','',''])
-                except:
-                    pass
+                #try:
+                url = RefineURL(u)
+                title, fileList = AnalyzePage(u)
+                i += 1
+                page = tree.insert('','end',values=[url,title,len(fileList),0])
+                for f in fileList:
+                    tree.insert(page,'end',values=[f,'','',''])
+                #except:
+                #    pass
                 mainProgress.step(100/len(loadedList))
                 manualAddStatus.update()
 
