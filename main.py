@@ -18,6 +18,7 @@ import time
 import base64
 import zlib
 import textwrap
+import queue #required for pyinstaller
 
 ########################################################
 ################### GLOBAL CONSTANTS ###################
@@ -526,7 +527,7 @@ def ModifySettings(): #설정 파일 바꾸기 기능 + 관련 GUI 메뉴 GUI BU
 #### 프로그램 정보 출력 ####
 def ShowInfo():
     infoWindow = Toplevel()
-    infoText = jjalDownloaderTitle + '\n\n초코맛제티 - 러블리즈 갤러리 (%s)\n\n- 현재 지원 사이트 -\n개별·일괄 모두 지원: 디시인사이드 갤러리, 티스토리 블로그 (일부 제외)\n개별 다운로드만 지원: 티스토리 블로그 (일부), 인스타그램, 트위터, 네이버 블로그' % releaseDateString
+    infoText = jjalDownloaderTitle + '\n\n초코맛제티 - 러블리즈 갤러리 (%s)\n\n- 현재 지원 사이트 -\n개별·일괄 모두 지원: 디시인사이드 갤러리, 티스토리 블로그 (일부 제외), 네이버 포스트 \n개별 다운로드만 지원: 티스토리 블로그 (일부), 인스타그램, 트위터, 네이버 블로그' % releaseDateString
     ttk.Label(infoWindow, text=infoText, justify=CENTER).pack(in_=infoWindow,padx=20,pady=20)
 
 
@@ -640,7 +641,7 @@ def AnalyzePage(url): #개별 페이지 URL 주소에서 포함된 이미지 주
     #네이버 포스트 분석
     elif 'post.naver.com' in url:
         soup = LoadPage(url)
-        title = str(soup.title.string.encode('euc-kr','ignore').decode('euc-kr')).replace(': 네이버 포스트','').strip()
+        title = str(soup.title.string.encode('euc-kr','ignore').decode('euc-kr')).replace(': 네이버 포스트','').strip().replace('\n',' ')
         main_div = soup.find('div', {'id':'cont', 'class': ['end', '__viewer_container']})
         imgsoup = BeautifulSoup(main_div.script.string,'lxml')
         imgs = [img.get('data-src') for img in imgsoup.find_all('img')]
