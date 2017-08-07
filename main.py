@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 import pickle
 import urllib.parse as urlparse
 import requests
-import certifi
 import webbrowser
 import os
 import subprocess
@@ -19,17 +18,15 @@ import time
 import base64
 import zlib
 import textwrap
-import queue
-import threading
 
 ########################################################
 ################### GLOBAL CONSTANTS ###################
 ########################################################
 
-version = '5.6.1'
-version_nick = '라푼젤'
+version = '5.7'
+version_nick = '그대에게'
 jjalDownloaderTitle = '짤 다운로더 {} [{}]'.format(version, version_nick)
-releaseDateString = '2017년 7월 8일'
+releaseDateString = '2017년 8월 7일'
 
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
@@ -223,15 +220,15 @@ def ManualAdd(): #수동 추가
             # loop: extracting image links from each url page of the url list
             i = 0
             for u in loadedList:
-                try:
-                    url = RefineURL(u)
-                    title, fileList = AnalyzePage(u)
-                    i += 1
-                    page = tree.insert('','end',values=[url,title,len(fileList),0])
-                    for f in fileList:
-                        tree.insert(page,'end',values=[f,'','',''])
-                except:
-                    pass
+                #try:
+                url = RefineURL(u)
+                title, fileList = AnalyzePage(u)
+                i += 1
+                page = tree.insert('','end',values=[url,title,len(fileList),0])
+                for f in fileList:
+                    tree.insert(page,'end',values=[f,'','',''])
+                #except:
+                #    pass
                 mainProgress.step(100/len(loadedList))
                 manualAddStatus.update()
 
@@ -273,6 +270,8 @@ def BatchAdd(): #일괄 추가 팝업
         #     TwitterBatch()
         elif ans == 'b':
             TistoryBatch()
+        elif ans == 'p':
+            NaverPostBatch()
         batchAddRoot.destroy()
 
     batchAddRoot = Toplevel()
@@ -280,7 +279,8 @@ def BatchAdd(): #일괄 추가 팝업
     batchChoice.set('g')
     radioTexts = [['디시인사이드 갤러리 (마이너 포함)','g'],
         #['인스타그램','i'],
-        ['티스토리 블로그','b']
+        ['티스토리 블로그','b'],
+        ['네이버 포스트','p']
     ]
 
     ttk.Label(batchAddRoot, text='일괄 추가할 사이트를 선택해주세요.').pack(padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
@@ -635,6 +635,26 @@ def AnalyzePage(url): #개별 페이지 URL 주소에서 포함된 이미지 주
         imgs = soup.find_all('img')
         photoRawURLList = [re.sub('postfiles\d+','blogfiles',x.get('src')) for x in imgs if '.png' in x.get('src') or '.jpg' in x.get('src')]
         fileList = [re.split('\?type=',x)[0] for x in photoRawURLList]            
+
+
+    #네이버 포스트 분석
+    elif 'post.naver.com' in url:
+        soup = LoadPage(url)
+        title = str(soup.title.string.encode('euc-kr','ignore').decode('euc-kr')).replace(': 네이버 포스트','').strip()
+        main_div = soup.find('div', {'id':'cont', 'class': ['end', '__viewer_container']})
+        imgsoup = BeautifulSoup(main_div.script.string,'lxml')
+        imgs = [img.get('data-src') for img in imgsoup.find_all('img')]
+
+        fileList = []
+        for img in imgs:
+            if 'http://gfmarket' in img:
+                continue
+            srch = re.search('\?type\=\S+$', imgs[0]) #?type=w1200 같이 마지막에 붙는 이미지 크기 변수 제거
+            if bool(srch):
+                fileList.append(img.replace(srch.group(),''))
+            else:
+                fileList.append(img)
+
 
 
     #인스타그램 분석
@@ -1257,6 +1277,155 @@ def TistoryBatch():
     ttk.Button(tistoryRangeFrame,text='페이지 분석',command=TistoryBatchAnalyze).pack(in_=tistoryRangeFrame,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
 
 
+#### 네이버 포스트 전체 목록에서 개별 포스트 추출하기
+
+def NaverPostBatch():
+    def PostRangeAnalyze(): #선택 가능한 범위 분석/설정
+        global aList
+        homeURL = postCode.get().strip()
+        if 'http://' not in homeURL:
+            homeURL = 'http://' + homeURL
+        #if not bool(re.match('\S+/$',homeURL)):
+        #    homeURL += '/'
+        if homeURL != postCode.get():
+            postCode.delete(0,END)
+            postCode.insert(0,homeURL)
+        #try:
+        soup = LoadPage(homeURL)
+        homeTitle = soup.find('h2', {'class': 'tit_series'}).string
+
+        soup = LoadPage(homeURL)
+        aList = ['http://post.naver.com' + a.get('href') for a in soup.find_all('a', {'class': 'spot_post_area'})]
+        lastPage = len(aList)
+        lastPageIndex.set(lastPage)
+        selectedPostTitleDisplay.set('선택한 네이버 포스트: '+ homeTitle)
+        lastPageDisplay.set('선택 가능한 범위: 1-'+str(lastPage))
+            
+        #except:
+        #    DisplayError('네이버 포스트를 읽을 수 없거나 일괄 다운로드 할 수 없습니다. 다시 시도해주세요.')
+        #    postCode.delete(0,END)
+        #    lastPageIndex.set(0)
+        #    lastPageDisplay.set('')
+        
+        postBatchRoot.lift()
+
+    def PostBatchAnalyze(): #선택한 범위에 대한 분석 실시
+        global aList
+        downRangeInput = downRangeEntry.get()
+        postURL = postCode.get()
+        if downRangeInput == '' or postURL == '':
+            return 0
+
+        postBatchStatus = Toplevel()
+        ttk.Label(postBatchStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=postBatchStatus,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+        
+        try:
+            if not bool(re.match('^[\d,\- ]+$',downRangeInput)):
+                raise Exception
+            pageList = []
+            rangeSplitList = re.split(',',downRangeInput)
+            for p in rangeSplitList:
+                if '-' in p.strip():
+                    init, fin = [int(x) for x in re.split('-',p.strip())]
+                    pageList += list(range(init,fin+1))
+                else:
+                    pageList.append(int(p.strip()))
+    
+            pageList = set(pageList)
+            fullPageRange = set(range(1,lastPageIndex.get()+1))
+            if not (pageList < fullPageRange or pageList == fullPageRange):
+                raise Exception
+
+        except:
+            DisplayError('다운 범위를 잘못 입력하셨습니다. 다시 입력해주세요.')
+            downRangeEntry.delete('')
+            postBatchStatus.destroy()
+            postBatchRoot.lift()
+            return 0
+
+
+        #선택 범위에 해당하는 포스트 URL 목록
+        selectedURLList = [aList[x-1] for x in pageList]
+
+        mainProgress = ttk.Progressbar(postBatchStatus,maximum=100,mode='determinate')
+        mainProgress.pack(in_=postBatchStatus,fill=X,padx=20,pady=10)
+        workingStatusString1.set('작업 목록에 추가 중...')
+
+       
+        ### 과거 분석 기록과 대조
+        refinedselectedURLList = HistoryDuplicates(selectedURLList)
+        dupN = len(selectedURLList) - len(refinedselectedURLList)
+
+        if dupN != 0:
+            res = AskYesNo('기존 다운로드 기록과 겹치는 사이트가 '+str(dupN) + ' 개 있습니다. 중복된 사이트만 제외하고 받을까요?')
+            if res:
+                selectedURLList = refinedselectedURLList
+
+
+
+        # 각 포스트에 접속하여 이미지 URL 추출 후 tree에 저장
+        for u in selectedURLList:
+            try:
+                url = RefineURL(u)
+                title, fileList = AnalyzePage(u)
+                page = tree.insert('','end',values=[url,title,len(fileList),0])
+                for f in fileList:
+                    tree.insert(page,'end',text=f,values=[f,'','',''])
+            except:
+                pass
+
+            mainProgress.step(100/len(selectedURLList))
+            postBatchStatus.update()
+
+        postBatchStatus.destroy()
+        postBatchRoot.destroy()
+        workingStatusString1.set('추가 완료')
+
+
+    postBatchRoot = Toplevel()
+    lastPageIndex = IntVar()
+    lastPageIndex.set(0)
+    lastPageDisplay = StringVar()
+    lastPageDisplay.set('')
+    selectedPostTitleDisplay = StringVar()
+    selectedPostTitleDisplay.set('선택한 네이버 포스트: ')
+    aList = []
+
+    #### TISTORY URL FRAME GUI ####
+
+    postSelectFrame = ttk.LabelFrame(postBatchRoot, text='1. 네이버 포스트 주소 입력')
+    postSelectFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+
+    postSelectFrame1 = ttk.Frame(postSelectFrame)
+    postSelectFrame1.pack(in_=postSelectFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+
+    ttk.Label(postSelectFrame1,text='메인 페이지 주소: ').grid(column=0,row=0,in_=postSelectFrame1,sticky=W+E)
+    postCode = ttk.Entry(postSelectFrame1, width=18)
+    postCode.grid(column=1,row=0,in_=postSelectFrame1, sticky=W+E)
+    postSelectFrame1.grid_columnconfigure(1,weight=1)
+    #ttk.Button(postSelectFrame1,text='...', width=5,command=lambda: webbrowser.open_new(lovelyzPhotosLink)).grid(column=2,row=0,sticky=E,in_=postSelectFrame1)
+    ttk.Button(postSelectFrame1,text='범위 분석', command=PostRangeAnalyze).grid(column=0,row=1,columnspan = 3,in_=postSelectFrame1,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+
+
+    #### PAGE RANGE FRAME GUI ####
+
+    postRangeFrame = ttk.LabelFrame(postBatchRoot,text='2. 다운로드할 페이지 선택')
+    postRangeFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+
+    postRangeFrame1 = ttk.Frame(postRangeFrame)
+    postRangeFrame1.pack(in_=postRangeFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+
+    ttk.Label(postRangeFrame1, textvariable=selectedPostTitleDisplay,justify=LEFT,anchor=W).pack(in_=postRangeFrame1,fill=X)
+    ttk.Label(postRangeFrame1, textvariable=lastPageDisplay,justify=LEFT,anchor=W).pack(in_=postRangeFrame1,fill=X)
+
+    postRangeFrame2 = ttk.Frame(postRangeFrame)
+    postRangeFrame2.pack(in_=postRangeFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+
+    ttk.Label(postRangeFrame2, text='다운 받을 페이지 범위 (작을수록 최신) (예: 1,2-4): ',justify=LEFT,anchor=W).grid(column=0,row=0,in_=postRangeFrame2,sticky=W)
+    downRangeEntry = ttk.Entry(postRangeFrame2, width = 14)
+    downRangeEntry.grid(column=1,row=0,in_=postRangeFrame2,sticky=E)
+    
+    ttk.Button(postRangeFrame,text='페이지 분석',command=PostBatchAnalyze).pack(in_=postRangeFrame,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
 
 #########################################################
 ############### DOWLOAD AND SAVE IMAGES #################
