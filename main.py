@@ -650,7 +650,7 @@ def AnalyzePage(url): #개별 페이지 URL 주소에서 포함된 이미지 주
         for img in imgs:
             if 'http://gfmarket' in img:
                 continue
-            srch = re.search('\?type\=\S+$', imgs[0]) #?type=w1200 같이 마지막에 붙는 이미지 크기 변수 제거
+            srch = re.search('\?type\=\S+$', img) #?type=w1200 같이 마지막에 붙는 이미지 크기 변수 제거
             if bool(srch):
                 fileList.append(img.replace(srch.group(),''))
             else:
