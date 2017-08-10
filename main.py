@@ -24,10 +24,10 @@ import queue #required for pyinstaller
 ################### GLOBAL CONSTANTS ###################
 ########################################################
 
-version = '5.7'
-version_nick = '그대에게'
-jjalDownloaderTitle = '짤 다운로더 {} [{}]'.format(version, version_nick)
-releaseDateString = '2017년 8월 7일'
+PROGRAM_VERSION = '5.8'
+PROGRAM_NICK = 'Circle'
+PROGRAM_TITLE = '짤 다운로더 {} [{}]'.format(PROGRAM_VERSION, PROGRAM_NICK)
+RELEASE_DATE_STR = '2017년 8월 10일'
 
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
@@ -179,11 +179,14 @@ def ExportSettings(): #pickle.dump로 저장 값 일괄 덤핑
 ############### DISPLAYING POPUP MESSAGES ###############
 #########################################################
 
+def DisplayMessage(infoMsg):
+    messagebox.showinfo(PROGRAM_TITLE,infoMsg)
+
 def DisplayError(errorMsg):
-    messagebox.showwarning(jjalDownloaderTitle,errorMsg)
+    messagebox.showwarning(PROGRAM_TITLE,errorMsg)
 
 def AskYesNo(questionMsg):
-    res = messagebox.askyesno(jjalDownloaderTitle,questionMsg)
+    res = messagebox.askyesno(PROGRAM_TITLE,questionMsg)
     return res
 
 
@@ -527,7 +530,7 @@ def ModifySettings(): #설정 파일 바꾸기 기능 + 관련 GUI 메뉴 GUI BU
 #### 프로그램 정보 출력 ####
 def ShowInfo():
     infoWindow = Toplevel()
-    infoText = jjalDownloaderTitle + '\n\n초코맛제티 - 러블리즈 갤러리 (%s)\n\n- 현재 지원 사이트 -\n개별·일괄 모두 지원: 디시인사이드 갤러리, 티스토리 블로그 (일부 제외), 네이버 포스트 \n개별 다운로드만 지원: 티스토리 블로그 (일부), 인스타그램, 트위터, 네이버 블로그' % releaseDateString
+    infoText = PROGRAM_TITLE + '\n\n초코맛제티 - 러블리즈 갤러리 (%s)\n\n- 현재 지원 사이트 -\n개별·일괄 모두 지원: 디시인사이드 갤러리, 티스토리 블로그 (일부 제외), 네이버 포스트 \n개별 다운로드만 지원: 티스토리 블로그 (일부), 인스타그램, 트위터, 네이버 블로그, 네이버 스타캐스트' % RELEASE_DATE_STR
     ttk.Label(infoWindow, text=infoText, justify=CENTER).pack(in_=infoWindow,padx=20,pady=20)
 
 
@@ -644,12 +647,30 @@ def AnalyzePage(url): #개별 페이지 URL 주소에서 포함된 이미지 주
         title = str(soup.title.string.encode('euc-kr','ignore').decode('euc-kr')).replace(': 네이버 포스트','').strip().replace('\n',' ')
         main_div = soup.find('div', {'id':'cont', 'class': ['end', '__viewer_container']})
         imgsoup = BeautifulSoup(main_div.script.string,'lxml')
-        imgs = [img.get('data-src') for img in imgsoup.find_all('img')]
 
         fileList = []
-        for img in imgs:
+        for img_tag in imgsoup.find_all('img'):
+            img = img_tag.get('data-src')
+
             if 'http://gfmarket' in img:
                 continue
+
+            srch = re.search('\?type\=\S+$', img) #?type=w1200 같이 마지막에 붙는 이미지 크기 변수 제거
+            if bool(srch):
+                fileList.append(img.replace(srch.group(),''))
+            else:
+                fileList.append(img)
+
+    #네이버 뉴스 분석
+    elif 'entertain.naver.com' in url:
+        soup = LoadPage(url)
+        title = str(soup.title.string.encode('euc-kr','ignore').decode('euc-kr')).replace(':: 네이버 TV연예','').replace('\n',' ').strip()
+        cont = soup.find('div', {'id':'articeBody'})
+        imgs = [img.get('src') for img in cont.find_all('img')]
+
+        fileList = []
+        for img_tag in cont.find_all('img'):
+            img = img_tag.get('src')
             srch = re.search('\?type\=\S+$', img) #?type=w1200 같이 마지막에 붙는 이미지 크기 변수 제거
             if bool(srch):
                 fileList.append(img.replace(srch.group(),''))
@@ -1584,11 +1605,11 @@ def DownloadItems():
                 else:
                     raise NameError
 
-                newFileName = os.path.join(folderName, origName)
-
-                if newFileName in forbiddenString or bool(re.search(forbiddenNames, newFileName)):
+                if origName in forbiddenString or bool(re.search(forbiddenNames, origName)):
                     raise NameError
-                elif os.path.exists(newFileName):
+
+                newFileName = os.path.join(folderName, origName)
+                if os.path.exists(newFileName):
                     origname_base, origname_ext = os.path.splitext(newFileName)
                     newFileName = os.path.join(folderName, origname_base + '_' + str(time.time()) + origname_ext)
 
@@ -1701,6 +1722,7 @@ def DownloadItems():
             root.update()
 
     TerminateDownload()
+    DisplayMessage('작업을 완료하였습니다.')
     workingStatusString1.set('작업 완료')
 
 
@@ -1715,8 +1737,8 @@ def CheckUpdate(manual = True):
     def CheckVersion(upToDate):
         global lastUpdate
 
-        currV = float(''.join(version.split('.')))
-        if version.count('.') == 1:
+        currV = float(''.join(PROGRAM_VERSION.split('.')))
+        if PROGRAM_VERSION.count('.') == 1:
             currV /= 10
         else:
             currV /= 100
@@ -2413,7 +2435,7 @@ icondata=base64.b64decode(icon)
 #####################
 
 root = Tk()
-root.title(jjalDownloaderTitle + ' - 러블리즈 갤러리 (초코맛제티)')
+root.title(PROGRAM_TITLE + ' - 러블리즈 갤러리 (초코맛제티)')
 iconFile = 'icon.tmp'
 with open(iconFile,'wb') as f:
     f.write(icondata)
@@ -2452,7 +2474,7 @@ helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label='도움말 보기', command=lambda: webbrowser.open_new(helpLink))
 helpmenu.add_separator()
 helpmenu.add_command(label='업데이트 확인', command=CheckUpdate)
-helpmenu.add_command(label=jjalDownloaderTitle+' 정보', command=ShowInfo)
+helpmenu.add_command(label=PROGRAM_TITLE+' 정보', command=ShowInfo)
 menubar.add_cascade(label='도움말', menu=helpmenu)
 
 root.config(menu=menubar)
