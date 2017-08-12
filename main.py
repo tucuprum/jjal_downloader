@@ -27,13 +27,30 @@ import queue #required for pyinstaller
 PROGRAM_VERSION = '5.8'
 PROGRAM_NICK = 'Circle'
 PROGRAM_TITLE = '짤 다운로더 {} [{}]'.format(PROGRAM_VERSION, PROGRAM_NICK)
-RELEASE_DATE_STR = '2017년 8월 10일'
+RELEASE_DATE_STR = '2017년 8월 13일'
 
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
 USER_AGENT_MOBILE = 'Mozilla/5.0 (Linux; U; Android 2.1-update1; ko-kr; Nexus One Build/ERE27) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17'
 TIMEOUT = 15
 
+GUI_PARAM={
+    'ButtonPadX': 5,
+    'ButtonPadY': 5,
+    'TablePadX': 5,
+    'TablePadY': 5,
+    'LabelPadX': 5,
+    'LabelPadY': 5,
+    'FramePadX': 5,
+    'FramePadY': 5
+}
+
+HELP_LINK = 'http://gall.dcinside.com/board/view/?id=lovelyz&no=1779509'
+LOVELYZ_PHOTOS_LINK = 'https://docs.google.com/spreadsheets/d/1qyt2RBDChcvGxoOzATDyzrSyZuKjcMQlCE0DGhq4iGQ/edit#gid=0'
+
+FORBIDDEN_CHAR = '[<>:/\\|?*\"]|[\0-\31]' #forbidden for file and directory names
+FORBIDDEN_STR = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6',
+                    'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']
 
 
 #########################################################
@@ -217,7 +234,7 @@ def ManualAdd(): #수동 추가
             loadedList = re.split('\n', manualInput)
 
             manualAddStatus = Toplevel()
-            ttk.Label(manualAddStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=manualAddStatus,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+            ttk.Label(manualAddStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=manualAddStatus,padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
             mainProgress = ttk.Progressbar(manualAddStatus,maximum=100,mode='determinate')
             mainProgress.pack(in_=manualAddStatus,fill=X,padx=20,pady=10)
         
@@ -246,21 +263,21 @@ def ManualAdd(): #수동 추가
     subroot = Toplevel()
 
     # info msg
-    ttk.Label(subroot,text='추가할 사이트 주소를 한 줄에 하나씩 적어주세요.',justify=LEFT).pack(padx=GUIParam['LabelPadX'], pady = GUIParam['LabelPadY'])
+    ttk.Label(subroot,text='추가할 사이트 주소를 한 줄에 하나씩 적어주세요.',justify=LEFT).pack(padx=GUI_PARAM['LabelPadX'], pady = GUI_PARAM['LabelPadY'])
 
     # input
     e = Text(subroot, width=50, height=30)
-    e.pack(padx=GUIParam['ButtonPadX'], pady = GUIParam['ButtonPadY'])
+    e.pack(padx=GUI_PARAM['ButtonPadX'], pady = GUI_PARAM['ButtonPadY'])
     
     # button
     manualAddButtFrame = ttk.Frame(subroot)
     manualAddButtFrame.pack()
 
     b1 = ttk.Button(subroot,text='파일 불러오기',command=ListAdd)
-    b1.grid(row=0, column = 0,padx=GUIParam['ButtonPadX'], pady = GUIParam['ButtonPadY'], sticky=E+W, in_=manualAddButtFrame)
+    b1.grid(row=0, column = 0,padx=GUI_PARAM['ButtonPadX'], pady = GUI_PARAM['ButtonPadY'], sticky=E+W, in_=manualAddButtFrame)
 
     b2 = ttk.Button(subroot,text='추가',command=ManualAddCommand)
-    b2.grid(row=0, column = 1,padx=GUIParam['ButtonPadX'], pady = GUIParam['ButtonPadY'], sticky=E+W, in_=manualAddButtFrame)
+    b2.grid(row=0, column = 1,padx=GUI_PARAM['ButtonPadX'], pady = GUI_PARAM['ButtonPadY'], sticky=E+W, in_=manualAddButtFrame)
 
 
 def BatchAdd(): #일괄 추가 팝업
@@ -287,12 +304,12 @@ def BatchAdd(): #일괄 추가 팝업
         ['네이버 포스트','p']
     ]
 
-    ttk.Label(batchAddRoot, text='일괄 추가할 사이트를 선택해주세요.').pack(padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+    ttk.Label(batchAddRoot, text='일괄 추가할 사이트를 선택해주세요.').pack(padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
     
     for text, code in radioTexts:
-        ttk.Radiobutton(batchAddRoot, text=text, variable = batchChoice, value = code).pack(padx=GUIParam['LabelPadX'],anchor=W)
+        ttk.Radiobutton(batchAddRoot, text=text, variable = batchChoice, value = code).pack(padx=GUI_PARAM['LabelPadX'],anchor=W)
 
-    ttk.Button(batchAddRoot,text='확인',command=selectBatch).pack(padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+    ttk.Button(batchAddRoot,text='확인',command=selectBatch).pack(padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
 
 
 
@@ -463,9 +480,9 @@ def ModifySettings(): #설정 파일 바꾸기 기능 + 관련 GUI 메뉴 GUI BU
         addFilterWindow = Toplevel()
         addFilterFrame = ttk.Frame(addFilterWindow)
         addFilterFrame.pack()
-        ttk.Label(addFilterFrame,text='갤러리 일괄 다운로드 시에 제목에 꼭 들어가야\n하는 키워드를 한 줄에 하나씩 적어주세요.', justify=LEFT).pack(padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'],in_=addFilterFrame)
+        ttk.Label(addFilterFrame,text='갤러리 일괄 다운로드 시에 제목에 꼭 들어가야\n하는 키워드를 한 줄에 하나씩 적어주세요.', justify=LEFT).pack(padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'],in_=addFilterFrame)
         e = Text(addFilterFrame,width=37,height=20)
-        e.pack(in_=addFilterFrame,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+        e.pack(in_=addFilterFrame,padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
 
         filterButtonBox = ttk.Frame(addFilterWindow)
         filterButtonBox.pack()
@@ -491,18 +508,18 @@ def ModifySettings(): #설정 파일 바꾸기 기능 + 관련 GUI 메뉴 GUI BU
     settingTabs.pack(in_=settingWindow)
 
     tab1 = ttk.Frame(settingTabs)
-    ttk.Label(tab1,text='짤 다운받는 폴더 설정',justify=LEFT).grid(in_=tab1,row=0,column=0,sticky=W,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+    ttk.Label(tab1,text='짤 다운받는 폴더 설정',justify=LEFT).grid(in_=tab1,row=0,column=0,sticky=W,padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
 
     folderPathEntry = ttk.Entry(tab1,width=40)
-    folderPathEntry.grid(in_=tab1,row=2,column=0,sticky=W,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+    folderPathEntry.grid(in_=tab1,row=2,column=0,sticky=W,padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
     folderPathEntry.insert(END,destinationFolder.get())
-    ttk.Button(tab1,text='...', command=SetDownFolderDirectory,width=5).grid(in_=tab1,row=2,column=1,sticky=W,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
-    ttk.Checkbutton(tab1,text='사이트 별로 폴더를 생성',variable=createIndevDirInput).grid(in_=tab1,row=3,column=0,sticky=W,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+    ttk.Button(tab1,text='...', command=SetDownFolderDirectory,width=5).grid(in_=tab1,row=2,column=1,sticky=W,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
+    ttk.Checkbutton(tab1,text='사이트 별로 폴더를 생성',variable=createIndevDirInput).grid(in_=tab1,row=3,column=0,sticky=W,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
     
     tab2 = ttk.Frame(settingTabs)
 
     textBox = ttk.Frame(tab2)
-    textBox.pack(padx=GUIParam['FramePadX'],pady=GUIParam['FramePadY'], side=LEFT)
+    textBox.pack(padx=GUI_PARAM['FramePadX'],pady=GUI_PARAM['FramePadY'], side=LEFT)
     esb = ttk.Scrollbar(textBox,orient=VERTICAL)
     filterWords = Listbox(textBox, width=30, height=10,yscrollcommand=esb.set,selectmode=EXTENDED)
     filterWords.pack(side=LEFT,fill=BOTH,expand=1)
@@ -511,7 +528,7 @@ def ModifySettings(): #설정 파일 바꾸기 기능 + 관련 GUI 메뉴 GUI BU
     esb.pack(side=RIGHT,fill=Y)
 
     buttonBox = ttk.Frame(tab2)
-    buttonBox.pack(padx=GUIParam['FramePadX'],pady=GUIParam['FramePadY'], side=RIGHT)
+    buttonBox.pack(padx=GUI_PARAM['FramePadX'],pady=GUI_PARAM['FramePadY'], side=RIGHT)
     ttk.Button(buttonBox,text='추가',command=AddFilter).grid(column=0,row=0,in_=buttonBox)
     ttk.Button(buttonBox,text='삭제',command=DeleteFilter).grid(column=0,row=1,in_=buttonBox)
 
@@ -583,22 +600,18 @@ def AnalyzePage(url): #개별 페이지 URL 주소에서 포함된 이미지 주
     if 'dcinside.com' in url:
         soup = LoadGallPage(url)
         title = str(soup.title.string.encode('euc-kr','ignore').decode('euc-kr')).strip()
+        fileList = []
 
-        ret = []
-        file_ids = []
 
         # files from attachments
         attached_files = soup.find('ul', class_='appending_file')
+        file_nos = {}
         if attached_files is not None:
             attached_files = attached_files.find_all('a')
             for file in attached_files:
                 file_url = file.get('href')
-                ret.append(file_url)
-                file_ids.append(re.search('php\?id=(?P<imgid>\S+)&no=', file_url).group('imgid'))
-        else:
-            ret = []
-            file_ids = []
-
+                file_nos[re.search('php\?id=\S+&no=(?P<imgid>\S+)&f_no', file_url).group('imgid')] = file_url
+                
         # files from main contents
         cont = soup.find('div', attrs={'class', 's_write'})
         atags = cont.find_all('a', target='image')
@@ -606,10 +619,12 @@ def AnalyzePage(url): #개별 페이지 URL 주소에서 포함된 이미지 주
 
         if len(atags) > 0:
             for a in atags:
-                a_url = a.get('href')
-                a_id = re.search('php\?id=(?P<imgid>\S+)&no=', a_url).group('imgid')
-                if a_id not in file_ids:
-                    ret.append(a_url)
+                img_url = a.get('href')
+                img_id = re.search('php\?id=\S+&no=(?P<imgid>\S+)', img_url).group('imgid')
+                if img_id in file_nos.keys():
+                    fileList.append(file_nos[img_id])
+                else:
+                    fileList.append(img_url)
 
         else:
             imgs = cont.find_all('img')
@@ -619,18 +634,24 @@ def AnalyzePage(url): #개별 페이지 URL 주소에서 포함된 이미지 주
 
                 if bool(re.search('imgPop', str(img))):
                     img_url = re.sub('Pop', '', re.split("'", img.get('onclick'))[1])
-                    img_id = re.search('php\?id=(?P<imgid>\S+)&no=',img_url).group('imgid')
-                    if img_id not in file_ids:
-                        ret.append(img_url)
+                    img_id = re.search('php\?id=\S+&no=(?P<imgid>\S+)',img_url).group('imgid')
+                    if img_id in file_nos.keys():
+                        fileList.append(file_nos[img_id])
+                    else:
+                        fileList.append(img_url)
+                    #if img_id not in file_nos:
+                    #    fileList.append(img_url)
 
                 elif bool(re.match('^http\S+', img.get('src'))):
                     img_url = img.get('src')
-                    img_id = re.search('php\?id=(?P<imgid>\S+)&no=',img_url).group('imgid')
-                    if img_id not in file_ids:
-                        ret.append(img_url)
-
-        fileList = ret
-
+                    img_id = re.search('php\?id=\S+&no=(?P<imgid>\S+)',img_url).group('imgid')
+                    if img_id in file_nos.keys():
+                        fileList.append(file_nos[img_id])
+                    else:
+                        fileList.append(img_url)
+                    #if img_id not in file_nos:
+                    #    fileList.append(img_url)
+        #fileList += list(set(file_nos.values()))
 
     #네이버 블로그 분석
     elif 'blog.naver.com' in url:
@@ -801,7 +822,7 @@ def GallBatch():
         ttk.Button(gallCodeSearchBox,text='확인',command=ReturnCode).grid(column=2,row=1)
 
         gallListBoxFrame = ttk.Frame(gallCodeSearchBox)
-        gallListBoxFrame.grid(column=0,row=2,columnspan=3,padx=GUIParam['TablePadX'],pady=GUIParam['TablePadY'],sticky=E+W)
+        gallListBoxFrame.grid(column=0,row=2,columnspan=3,padx=GUI_PARAM['TablePadX'],pady=GUI_PARAM['TablePadY'],sticky=E+W)
 
         gallListBoxScrollBar = ttk.Scrollbar(gallListBoxFrame, orient=VERTICAL)
         gallListBox = Listbox(gallListBoxFrame,yscrollcommand=gallListBoxScrollBar.set)
@@ -847,7 +868,7 @@ def GallBatch():
             return 0
 
         gallBatchStatus = Toplevel()
-        ttk.Label(gallBatchStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=gallBatchStatus,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+        ttk.Label(gallBatchStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=gallBatchStatus,padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
 
         allList = [] #페이지 URL 리스트
 
@@ -954,12 +975,12 @@ def GallBatch():
     #### SELECT GALL CODE ####
 
     gallSelectFrame = ttk.LabelFrame(gallBatchRoot, text='1. 갤러리 및 범위 선택')
-    gallSelectFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+    gallSelectFrame.pack(fill=BOTH, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'])
     
     
     # 갤러리 선택 프레임
     gallSelectFrame1 = ttk.Frame(gallSelectFrame)
-    gallSelectFrame1.pack(in_=gallSelectFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    gallSelectFrame1.pack(in_=gallSelectFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(gallSelectFrame1,text='검색할 갤러리 코드: ').grid(column=0,row=0,in_=gallSelectFrame1,sticky=W)
     gallCode = ttk.Entry(gallSelectFrame1, width=19)
@@ -968,12 +989,12 @@ def GallBatch():
 
     # 페이지 범위 선택 프레임
     gallSelectFrame2 = ttk.Frame(gallSelectFrame)
-    gallSelectFrame2.pack(in_=gallSelectFrame, padx=GUIParam['FramePadX'],fill=X)
+    gallSelectFrame2.pack(in_=gallSelectFrame, padx=GUI_PARAM['FramePadX'],fill=X)
 
-    ttk.Checkbutton(gallSelectFrame2,text="개념글만 다운로드", variable=recQInput).pack(padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],side=LEFT)
-    ttk.Checkbutton(gallSelectFrame2,text="제목 필터 적용", variable=applyFilterQInput).pack(padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],side=LEFT)
+    ttk.Checkbutton(gallSelectFrame2,text="개념글만 다운로드", variable=recQInput).pack(padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],side=LEFT)
+    ttk.Checkbutton(gallSelectFrame2,text="제목 필터 적용", variable=applyFilterQInput).pack(padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],side=LEFT)
     
-    ttk.Button(gallSelectFrame,text="범위 분석", command=GallRangeAnalyze).pack(padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],side=BOTTOM)
+    ttk.Button(gallSelectFrame,text="범위 분석", command=GallRangeAnalyze).pack(padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],side=BOTTOM)
 
 
 
@@ -985,10 +1006,10 @@ def GallBatch():
     lastPageDisplay.set('')
 
     gallRangeFrame = ttk.LabelFrame(gallBatchRoot,text='2. 다운로드할 페이지 선택')
-    gallRangeFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+    gallRangeFrame.pack(fill=BOTH, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'])
 
     gallRangeFrame1 = ttk.Frame(gallRangeFrame)
-    gallRangeFrame1.pack(in_=gallRangeFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    gallRangeFrame1.pack(in_=gallRangeFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     selectedGallTitleDisplay = StringVar()
     selectedGallTitleDisplay.set('선택한 갤러리: ')
@@ -997,13 +1018,13 @@ def GallBatch():
     ttk.Label(gallRangeFrame1, textvariable=lastPageDisplay,justify=LEFT,anchor=W).pack(in_=gallRangeFrame1,fill=X)
 
     gallRangeFrame2 = ttk.Frame(gallRangeFrame)
-    gallRangeFrame2.pack(in_=gallRangeFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    gallRangeFrame2.pack(in_=gallRangeFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(gallRangeFrame2, text='다운 받을 페이지 범위 (예: 1,2-4): ',justify=LEFT,anchor=W).grid(column=0,row=0,in_=gallRangeFrame2,sticky=W)
     downRangeEntry = ttk.Entry(gallRangeFrame2, width = 14)
     downRangeEntry.grid(column=1,row=0,in_=gallRangeFrame2,sticky=E)
     
-    ttk.Button(gallRangeFrame,text='페이지 분석',command=GallBatchAnalyze).pack(in_=gallRangeFrame,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+    ttk.Button(gallRangeFrame,text='페이지 분석',command=GallBatchAnalyze).pack(in_=gallRangeFrame,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
 
 
 
@@ -1189,7 +1210,7 @@ def TistoryBatch():
             return 0
 
         tistoryBatchStatus = Toplevel()
-        ttk.Label(tistoryBatchStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=tistoryBatchStatus,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+        ttk.Label(tistoryBatchStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=tistoryBatchStatus,padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
         
         try:
             if not bool(re.match('^[\d,\- ]+$',downRangeInput)):
@@ -1265,38 +1286,38 @@ def TistoryBatch():
     #### TISTORY URL FRAME GUI ####
 
     tistorySelectFrame = ttk.LabelFrame(tistoryBatchRoot, text='1. 티스토리 주소 입력')
-    tistorySelectFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+    tistorySelectFrame.pack(fill=BOTH, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'])
 
     tistorySelectFrame1 = ttk.Frame(tistorySelectFrame)
-    tistorySelectFrame1.pack(in_=tistorySelectFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    tistorySelectFrame1.pack(in_=tistorySelectFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(tistorySelectFrame1,text='메인 페이지 주소: ').grid(column=0,row=0,in_=tistorySelectFrame1,sticky=W+E)
     tistoryCode = ttk.Entry(tistorySelectFrame1, width=18)
     tistoryCode.grid(column=1,row=0,in_=tistorySelectFrame1, sticky=W+E)
     tistorySelectFrame1.grid_columnconfigure(1,weight=1)
-    ttk.Button(tistorySelectFrame1,text='...', width=5,command=lambda: webbrowser.open_new(lovelyzPhotosLink)).grid(column=2,row=0,sticky=E,in_=tistorySelectFrame1)
-    ttk.Button(tistorySelectFrame1,text='범위 분석', command=TistoryRangeAnalyze).grid(column=0,row=1,columnspan = 3,in_=tistorySelectFrame1,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+    ttk.Button(tistorySelectFrame1,text='...', width=5,command=lambda: webbrowser.open_new(LOVELYZ_PHOTOS_LINK)).grid(column=2,row=0,sticky=E,in_=tistorySelectFrame1)
+    ttk.Button(tistorySelectFrame1,text='범위 분석', command=TistoryRangeAnalyze).grid(column=0,row=1,columnspan = 3,in_=tistorySelectFrame1,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
 
 
     #### PAGE RANGE FRAME GUI ####
 
     tistoryRangeFrame = ttk.LabelFrame(tistoryBatchRoot,text='2. 다운로드할 페이지 선택')
-    tistoryRangeFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+    tistoryRangeFrame.pack(fill=BOTH, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'])
 
     tistoryRangeFrame1 = ttk.Frame(tistoryRangeFrame)
-    tistoryRangeFrame1.pack(in_=tistoryRangeFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    tistoryRangeFrame1.pack(in_=tistoryRangeFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(tistoryRangeFrame1, textvariable=selectedTistoryTitleDisplay,justify=LEFT,anchor=W).pack(in_=tistoryRangeFrame1,fill=X)
     ttk.Label(tistoryRangeFrame1, textvariable=lastPageDisplay,justify=LEFT,anchor=W).pack(in_=tistoryRangeFrame1,fill=X)
 
     tistoryRangeFrame2 = ttk.Frame(tistoryRangeFrame)
-    tistoryRangeFrame2.pack(in_=tistoryRangeFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    tistoryRangeFrame2.pack(in_=tistoryRangeFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(tistoryRangeFrame2, text='다운 받을 페이지 범위 (클수록 최신) (예: 1,2-4): ',justify=LEFT,anchor=W).grid(column=0,row=0,in_=tistoryRangeFrame2,sticky=W)
     downRangeEntry = ttk.Entry(tistoryRangeFrame2, width = 14)
     downRangeEntry.grid(column=1,row=0,in_=tistoryRangeFrame2,sticky=E)
     
-    ttk.Button(tistoryRangeFrame,text='페이지 분석',command=TistoryBatchAnalyze).pack(in_=tistoryRangeFrame,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+    ttk.Button(tistoryRangeFrame,text='페이지 분석',command=TistoryBatchAnalyze).pack(in_=tistoryRangeFrame,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
 
 
 #### 네이버 포스트 전체 목록에서 개별 포스트 추출하기
@@ -1339,7 +1360,7 @@ def NaverPostBatch():
             return 0
 
         postBatchStatus = Toplevel()
-        ttk.Label(postBatchStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=postBatchStatus,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+        ttk.Label(postBatchStatus,text='선택한 범위에 대해 분석을 진행합니다.',justify=CENTER,anchor=CENTER).pack(fill=X,in_=postBatchStatus,padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
         
         try:
             if not bool(re.match('^[\d,\- ]+$',downRangeInput)):
@@ -1416,38 +1437,38 @@ def NaverPostBatch():
     #### TISTORY URL FRAME GUI ####
 
     postSelectFrame = ttk.LabelFrame(postBatchRoot, text='1. 네이버 포스트 주소 입력')
-    postSelectFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+    postSelectFrame.pack(fill=BOTH, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'])
 
     postSelectFrame1 = ttk.Frame(postSelectFrame)
-    postSelectFrame1.pack(in_=postSelectFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    postSelectFrame1.pack(in_=postSelectFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(postSelectFrame1,text='메인 페이지 주소: ').grid(column=0,row=0,in_=postSelectFrame1,sticky=W+E)
     postCode = ttk.Entry(postSelectFrame1, width=18)
     postCode.grid(column=1,row=0,in_=postSelectFrame1, sticky=W+E)
     postSelectFrame1.grid_columnconfigure(1,weight=1)
     #ttk.Button(postSelectFrame1,text='...', width=5,command=lambda: webbrowser.open_new(lovelyzPhotosLink)).grid(column=2,row=0,sticky=E,in_=postSelectFrame1)
-    ttk.Button(postSelectFrame1,text='범위 분석', command=PostRangeAnalyze).grid(column=0,row=1,columnspan = 3,in_=postSelectFrame1,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+    ttk.Button(postSelectFrame1,text='범위 분석', command=PostRangeAnalyze).grid(column=0,row=1,columnspan = 3,in_=postSelectFrame1,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
 
 
     #### PAGE RANGE FRAME GUI ####
 
     postRangeFrame = ttk.LabelFrame(postBatchRoot,text='2. 다운로드할 페이지 선택')
-    postRangeFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+    postRangeFrame.pack(fill=BOTH, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'])
 
     postRangeFrame1 = ttk.Frame(postRangeFrame)
-    postRangeFrame1.pack(in_=postRangeFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    postRangeFrame1.pack(in_=postRangeFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(postRangeFrame1, textvariable=selectedPostTitleDisplay,justify=LEFT,anchor=W).pack(in_=postRangeFrame1,fill=X)
     ttk.Label(postRangeFrame1, textvariable=lastPageDisplay,justify=LEFT,anchor=W).pack(in_=postRangeFrame1,fill=X)
 
     postRangeFrame2 = ttk.Frame(postRangeFrame)
-    postRangeFrame2.pack(in_=postRangeFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    postRangeFrame2.pack(in_=postRangeFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(postRangeFrame2, text='다운 받을 페이지 범위 (작을수록 최신) (예: 1,2-4): ',justify=LEFT,anchor=W).grid(column=0,row=0,in_=postRangeFrame2,sticky=W)
     downRangeEntry = ttk.Entry(postRangeFrame2, width = 14)
     downRangeEntry.grid(column=1,row=0,in_=postRangeFrame2,sticky=E)
     
-    ttk.Button(postRangeFrame,text='페이지 분석',command=PostBatchAnalyze).pack(in_=postRangeFrame,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+    ttk.Button(postRangeFrame,text='페이지 분석',command=PostBatchAnalyze).pack(in_=postRangeFrame,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
 
 #########################################################
 ############### DOWLOAD AND SAVE IMAGES #################
@@ -1520,50 +1541,41 @@ def DownloadItems():
         return ret
 
 
-    def AlphabetToEUCKR(str1, str2): #'be','c6' => '아'
-        return bytes([int('0x'+str1,16),int('0x'+str2,16)]).decode('euc-kr')
+
 
     #def AlphabetToUTF8(str1, str2): #'be','c6' => '아'
     #    return bytes([int('0x'+str1,16),int('0x'+str2,16)]).decode('utf-8')
 
-    def GallEUCKRFileName(rawString):
-        unicodeBinary = re.sub('\\\\\\\\','\\\\',str(rawString.encode('unicode_escape'))[2:-1]) # '\\xa5\\xbe\\xbe...  \\ is one char
-        stringLen = len(unicodeBinary)
-        decodedList = list()
-        i = 0
-        while True:
-            if i >= len(unicodeBinary):
-                break
-            elif unicodeBinary[i:i+2] == '\\x':
-                decoded = (AlphabetToEUCKR(unicodeBinary[i+2:i+4],unicodeBinary[i+6:i+8])) #[a:b] up to b not including b
-                decodedList.append(decoded)
-                i += 8
-            else:
-                decodedList.append(unicodeBinary[i])
-                i += 1
-        
-        return ''.join(decodedList)
 
-    def TistoryEUCKRFileName(rawString):
-        #unicodeBinary = rawString
-        #stringLen = len(unicodeBinary)
-        #decodedList = list()
-        #i = 0
-        #while True:
-        #    if i >= len(unicodeBinary):
-        #        break
-        #    elif bool(re.match('%[0-9A-F]{2}%[0-9A-F]{2}', unicodeBinary[i:i+6])): # %EB%8B
-        #        decoded = (AlphabetToEUCKR(unicodeBinary[i+1:i+3].lower(),unicodeBinary[i+4:i+6].lower())) #[a:b] up to b not including b
-        #        decodedList.append(decoded)
-        #        i += 6
-        #    else:
-        #        decodedList.append(unicodeBinary[i])
-        #        i += 1
-        return urlparse.unquote(rawString)
         
     def DownloadImage(jjal_url, referer):
+        UPDATE_INTERVAL = 0.1
+
+        def GallEUCKRFileName(rawString):
+            def AlphabetToEUCKR(str1, str2): #'be','c6' => '아'
+                return bytes([int('0x'+str1,16),int('0x'+str2,16)]).decode('euc-kr')
+
+            unicodeBinary = re.sub('\\\\\\\\','\\\\',str(rawString.encode('unicode_escape'))[2:-1]) # '\\xa5\\xbe\\xbe...  \\ is one char
+            stringLen = len(unicodeBinary)
+            decodedList = list()
+            i = 0
+            while True:
+                if i >= len(unicodeBinary):
+                    break
+                elif unicodeBinary[i:i+2] == '\\x':
+                    decoded = (AlphabetToEUCKR(unicodeBinary[i+2:i+4],unicodeBinary[i+6:i+8])) #[a:b] up to b not including b
+                    decodedList.append(decoded)
+                    i += 8
+                else:
+                    decodedList.append(unicodeBinary[i])
+                    i += 1
+        
+            return ''.join(decodedList)
+
+        def DecodeURLName(rawString):
+            return urlparse.unquote(rawString)
+
         with requests.session() as s:
-            s.get(referer)
             try:
                 if 'http://image.dcinside.com/' in jjal_url:
                     #s.headers['Referer'] = jjal_url.replace('download.php', 'viewimage.php')
@@ -1591,24 +1603,27 @@ def DownloadItems():
             web_file_ext = ParseTypeHeader(resp.headers['Content-Type'])
 
             try:
-                web_file_name = resp.headers['Content-Disposition']
-                if 'filename' not in web_file_name:
-                    raise NameError
-
-                if 'dcinside.com' in jjal_url: #attachment; filename="1499393942.jpg"
-                    origName = GallEUCKRFileName(re.split('filename=', web_file_name)[1].replace('"', ''))
-
-                elif 'tistory.com' in jjal_url: #inline; filename="1V7A2674.jpg"; filename*=UTF-8''1V7A2674.jpg
-                    origName = GallEUCKRFileName(re.split('filename=', re.split(';', web_file_name)[1])[1].replace('"', ''))
-                    origName = TistoryEUCKRFileName(origName)
+                if 'post.phinf.naver.net' in jjal_url: #naver post
+                    orig_name = DecodeURLName(re.split('/', jjal_url)[-1]) #idnetical
 
                 else:
+                    web_file_name = resp.headers['Content-Disposition']
+                    if 'filename' not in web_file_name:
+                        raise NameError
+
+                    elif 'dcinside.com' in jjal_url: #attachment; filename="1499393942.jpg"
+                        orig_name = GallEUCKRFileName(re.split('filename=', web_file_name)[1].replace('"', ''))
+                    else:
+                        mat = re.search("filename\*=UTF-8''(?P<file>\S+)$", web_file_name)  #test for tistory
+                        if bool(mat):
+                            orig_name = DecodeURLName(mat.group('file')) #inline; filename="1V7A2674.jpg"; filename*=UTF-8''1V7A2674.jpg
+                        else:
+                            raise NameError
+
+                if orig_name in FORBIDDEN_STR or bool(re.search(FORBIDDEN_CHAR, orig_name)):
                     raise NameError
 
-                if origName in forbiddenString or bool(re.search(forbiddenNames, origName)):
-                    raise NameError
-
-                newFileName = os.path.join(folderName, origName)
+                newFileName = os.path.join(folderName, orig_name)
                 if os.path.exists(newFileName):
                     origname_base, origname_ext = os.path.splitext(newFileName)
                     newFileName = os.path.join(folderName, origname_base + '_' + str(time.time()) + origname_ext)
@@ -1637,7 +1652,7 @@ def DownloadItems():
                         cummul += len(buf)
                         section += len(buf)
                         currTime = time.time()
-                        if currTime > startTime + 0.1:
+                        if currTime > startTime + UPDATE_INTERVAL:
                             workingStatusString2.set(FileSizeConverter(section / (currTime-startTime)) + '/s')
                             startTime = currTime
                             section = 0
@@ -1649,9 +1664,6 @@ def DownloadItems():
                 root.update()
                 time.sleep(3)
                 return None
-
-            #if web_file_size != 0 and cummul != web_file_size:
-            #    raise UnboundLocalError
 
             if web_file_ext == 0:
                 web_file_ext = '.mp4' if bool(re.match('\S+.mp4$', jjal_url)) else TypeToExt(temp)
@@ -1665,13 +1677,6 @@ def DownloadItems():
         
             tree.set(jjal_index,column=3,value=FileSizeConverter(cummul)+' (100 %)')
             os.rename(temp, newFileName)
-
-
-            #except:
-            #    tree.set(jjal_index,column=3,value='다운로드 실패')
-            #    os.remove(temp)
-            #    root.update()
-            #    continue
 
 
 
@@ -1886,7 +1891,7 @@ def CheckDuplicate():
 
         ### Using progress bar to display analysis status
         listDuplText.set('선택한 폴더에 대해 분석합니다.')
-        ttk.Label(listDuplStatus,textvariable=listDuplText,justify=CENTER,anchor=CENTER).pack(fill=X,in_=listDuplStatus,padx=GUIParam['LabelPadX'],pady=GUIParam['LabelPadY'])
+        ttk.Label(listDuplStatus,textvariable=listDuplText,justify=CENTER,anchor=CENTER).pack(fill=X,in_=listDuplStatus,padx=GUI_PARAM['LabelPadX'],pady=GUI_PARAM['LabelPadY'])
 
         mainProgress = ttk.Progressbar(listDuplStatus, maximum=100, mode='determinate', variable=progressbarVar)
         mainProgress.pack(in_=listDuplStatus, fill=X, padx=20, pady=10)
@@ -2026,44 +2031,23 @@ def CheckDuplicate():
     ForbidOtherActions()
 
     chckDuplFrame = ttk.LabelFrame(chckDuplRoot, text='중복 검사 폴더 입력')
-    chckDuplFrame.pack(fill=BOTH, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'])
+    chckDuplFrame.pack(fill=BOTH, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'])
 
     chckDuplFrame1 = ttk.Frame(chckDuplFrame)
-    chckDuplFrame1.pack(in_=chckDuplFrame, padx=GUIParam['FramePadX'], pady = GUIParam['FramePadY'], fill=X)
+    chckDuplFrame1.pack(in_=chckDuplFrame, padx=GUI_PARAM['FramePadX'], pady = GUI_PARAM['FramePadY'], fill=X)
 
     ttk.Label(chckDuplFrame1,text='검사 대상 폴더').grid(column=0,row=0,columnspan=2,in_=chckDuplFrame1,sticky=W+E)
     destFolder = ttk.Entry(chckDuplFrame1, width=40)
     destFolder.grid(column=0,row=1,in_=chckDuplFrame1, sticky=W+E)
     destFolder.insert(END,destinationFolder.get())
-    ttk.Button(chckDuplFrame1,text='...', command=SetDownFolderDirectory,width=5).grid(row=1,column=1,sticky=W,in_=chckDuplFrame1,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
-    ttk.Button(chckDuplFrame1,text='중복 검사', command=ListDuplicates).grid(column=0,row=2,columnspan=2,in_=chckDuplFrame1,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'])
+    ttk.Button(chckDuplFrame1,text='...', command=SetDownFolderDirectory,width=5).grid(row=1,column=1,sticky=W,in_=chckDuplFrame1,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
+    ttk.Button(chckDuplFrame1,text='중복 검사', command=ListDuplicates).grid(column=0,row=2,columnspan=2,in_=chckDuplFrame1,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'])
 
 
 #############################################################
 ###################### GUI WINDOW MAIN ######################
 #############################################################
 
-##### CONSTANTS ####
-
-GUIParam={
-    'ButtonPadX': 5,
-    'ButtonPadY': 5,
-    'TablePadX': 5,
-    'TablePadY': 5,
-    'LabelPadX': 5,
-    'LabelPadY': 5,
-    'FramePadX': 5,
-    'FramePadY': 5
-}
-
-mobileBrowseAgent = 'Mozilla/5.0 (Linux; U; Android 2.1-update1; ko-kr; Nexus One Build/ERE27) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17'
-
-helpLink = 'http://gall.dcinside.com/board/view/?id=lovelyz&no=1779509'
-lovelyzPhotosLink = 'https://docs.google.com/spreadsheets/d/1qyt2RBDChcvGxoOzATDyzrSyZuKjcMQlCE0DGhq4iGQ/edit#gid=0'
-
-forbiddenNames = '[<>:/\\|?*\"]|[\0-\31]'
-forbiddenString = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6',
-                    'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']
 
 #icon in base64
 icon = \
@@ -2471,7 +2455,7 @@ filemenu.add_command(label='닫기', command=lambda: root.destroy())
 menubar.add_cascade(label='파일', menu=filemenu)
 
 helpmenu = Menu(menubar, tearoff=0)
-helpmenu.add_command(label='도움말 보기', command=lambda: webbrowser.open_new(helpLink))
+helpmenu.add_command(label='도움말 보기', command=lambda: webbrowser.open_new(HELP_LINK))
 helpmenu.add_separator()
 helpmenu.add_command(label='업데이트 확인', command=CheckUpdate)
 helpmenu.add_command(label=PROGRAM_TITLE+' 정보', command=ShowInfo)
@@ -2482,23 +2466,23 @@ root.config(menu=menubar)
 ##### BUTTONS ####
 
 treeOpsFrame = ttk.Frame()
-treeOpsFrame.pack(pady=GUIParam['FramePadY'], fill=BOTH)
+treeOpsFrame.pack(pady=GUI_PARAM['FramePadY'], fill=BOTH)
 
 # LEFT BUTTONS
 treeAddDelFrame = ttk.Frame(treeOpsFrame)
 treeAddDelFrame.pack(side=LEFT, in_=treeOpsFrame)
 
 ManualAdd = ttk.Button(text='개별 주소 추가',command=ManualAdd)
-ManualAdd.grid(column=0,row=0,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],in_=treeAddDelFrame, sticky=N+S+E+W)
+ManualAdd.grid(column=0,row=0,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],in_=treeAddDelFrame, sticky=N+S+E+W)
 
 batchAdd = ttk.Button(text='사이트 일괄 추가', command=BatchAdd)
-batchAdd.grid(column=1,row=0,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],in_=treeAddDelFrame, sticky=N+S+E+W)
+batchAdd.grid(column=1,row=0,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],in_=treeAddDelFrame, sticky=N+S+E+W)
 
 deleteItem = ttk.Button(text='삭제', command = DeleteItem)
-deleteItem.grid(column=2,row=0,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],in_=treeAddDelFrame, sticky=N+S+E+W)
+deleteItem.grid(column=2,row=0,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],in_=treeAddDelFrame, sticky=N+S+E+W)
 
 cleanItem = ttk.Button(text='완료 내역 정리', command = CleanItem)
-cleanItem.grid(column=3,row=0,padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],in_=treeAddDelFrame, sticky=N+S+E+W)
+cleanItem.grid(column=3,row=0,padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],in_=treeAddDelFrame, sticky=N+S+E+W)
 
 # RIGHT BUTTONS
 treeMainOpsFrame = ttk.Frame(treeOpsFrame)
@@ -2507,10 +2491,10 @@ treeMainOpsFrame.pack(side=RIGHT, in_=treeOpsFrame)
 executionLabel = StringVar()
 executionLabel.set('실행')
 execution = ttk.Button(textvariable=executionLabel, command = DownloadItems)
-execution.pack(padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],in_=treeMainOpsFrame, side=RIGHT)
+execution.pack(padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],in_=treeMainOpsFrame, side=RIGHT)
 
 chkDupl = ttk.Button(text='중복이면말좀해주지', command = CheckDuplicate)
-chkDupl.pack(padx=GUIParam['ButtonPadX'],pady=GUIParam['ButtonPadY'],in_=treeMainOpsFrame, side=RIGHT)
+chkDupl.pack(padx=GUI_PARAM['ButtonPadX'],pady=GUI_PARAM['ButtonPadY'],in_=treeMainOpsFrame, side=RIGHT)
 
 
 
