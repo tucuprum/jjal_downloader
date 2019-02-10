@@ -9,4 +9,4 @@
 
 이 프로그램은 GNU GPL v3에 의거하여 배포되고 있습니다.
 
-Copyright (C) 2018 초코맛제티 <http://gallog.dcinside.com/tucuprum\>
+Copyright (C) 2018 초코맛제티 <http://gallog.dcinside.com/tucuprum>
