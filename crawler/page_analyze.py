@@ -36,17 +36,18 @@ class DCInsdePage(PageBot):  # 'dcinside.com' in url
         # files from attachments
         file_nos = {}
         attached_tag_raw = self.soup.find('ul', class_='appending_file')
+
         if attached_tag_raw is not None:
             attached_tags = attached_tag_raw.find_all('a')
             for file in attached_tags:
                 file_url = file.get('href')
-                url_mat = re.search('php\?id=\S+&no=(?P<imgid>\S+)&f_no', file_url)
+                url_mat = re.search('php\?no=(?P<imgid>\S+)&f_no', file_url)
                 if bool(url_mat):
                     img_id = url_mat.group('imgid')
                     file_nos[img_id] = file_url
 
         # files from main contents
-        cont = self.soup.find('div', attrs={'class', 's_write'})
+        cont = self.soup.find('div', attrs={'class', 'writing_view_box'})
         a_tags = cont.find_all('a', target='image')
 
         if len(a_tags) > 0:

@@ -22,15 +22,15 @@ def format_code_dcinside(code, recommend=False):
 
 
 def find_gall(keyword):
-    search_url = 'http://m.dcinside.com/search/index.php?search_gall={}&search_type=gall_name'.format(keyword)
+    search_url = 'http://m.dcinside.com/search/gall_name?keyword={}'.format(keyword)
     soup = load_page(search_url, mobile=True, extra_headers={'Host': 'm.dcinside.com'})
 
     ret = []
-    a_list = soup.find('div', class_="searh-result-box").find_all('a')
+    a_list = soup.find("div", class_="brick-wid").find_all('a')
     for a in a_list:
-        if 'http://m.dcinside.com/list.php' in a.get('href'):
+        if 'http://m.dcinside.com/board/' in a.get('href'):
             title = ''.join(a.strings).strip()
-            code = re.split('=', a.get('href'))[1]
+            code = re.split('/board/', a.get('href'))[1]
             ret.append([title, code])
     return ret
 
@@ -81,6 +81,7 @@ class DCInsideList(ListBot):
         self.recommend = recommend
         self.code = code
         self.url = format_code_dcinside(self.code, self.recommend)
+        self.isMinor = False
         if not keyword_filter:
             self.keyword_filter = []
         else:
@@ -90,12 +91,17 @@ class DCInsideList(ListBot):
 
     def get_last_list(self):
         soup = load_page(self.url)
+        if bool(soup.text.__contains__('location.replace')):
+            self.url = self.url.replace("http://gall.dcinside.com/board/lists/?id=", "http://gall.dcinside.com/mgallery/board/lists?id=")
+            self.isMinor = True
+            soup = load_page(self.url)
+
         self.title = soup.title.string.strip()
         if self.recommend:
             self.title += ' (개념글만)'
 
-        page_range_tag = soup.find('div', id='dgn_btn_paging')
-        end_page_url = page_range_tag.find_all('a')[-1].get('href')
+        page_range_tag = soup.findAll('a', {"class":'page_end'})[0]
+        end_page_url = page_range_tag.get('href')
         last_page_mat = re.search('page=(?P<pagenum>\d+)', end_page_url)
         if bool(last_page_mat):  # 마지막 페이지가 있는 경우
             self.last_list = int(last_page_mat.group('pagenum'))
@@ -104,13 +110,13 @@ class DCInsideList(ListBot):
 
     def _parse_one_list(self, article_list):
         soup = load_page(article_list)
-        threads = soup.find('tbody', attrs={'class', 'list_tbody'}).find_all('tr')  # 각 tr 항목마다 갤 제목 등등 저장
+        threads = soup.find('tbody').find_all('tr')  # 각 tr 항목마다 갤 제목 등등 저장
 
         valid_threads = []
         for t in threads:
             if t.find('td') is None:
                 continue
-            header = t.find('td', class_='t_notice').string
+            header = t.find('td', class_='gall_num').string
             if bool(re.match('\d+', header)):  # 공지사항 등 제외
                 valid_threads.append(t)
 
@@ -120,7 +126,7 @@ class DCInsideList(ListBot):
         else:  # 제목 필터 적용
             ret = []
             for v in valid_threads:
-                thread_title = ''.join(v.find('td', class_='t_subject').strings)
+                thread_title = ''.join(v.find('td', class_='gall_tit').strings)
                 for k in self.keyword_filter:
                     if k in thread_title:
                         ret.append('http://gall.dcinside.com' + v.find('a').get('href'))
